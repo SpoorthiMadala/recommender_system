@@ -1,0 +1,23 @@
+import pandas as pd
+from surprise import SVD, Dataset, Reader
+from surprise.model_selection import train_test_split
+from surprise.accuracy import rmse
+
+def svd_train(ratings_df):
+    reader = Reader(rating_scale=(ratings_df['rating'].min(), ratings_df['rating'].max()))
+    data = Dataset.load_from_df(ratings_df[['userId', 'movieId', 'rating']], reader)
+
+    trainset, testset = train_test_split(data, test_size=0.2, random_state=42)
+
+    model = SVD()
+    model.fit(trainset)
+
+    predictions = model.test(testset)
+    score = rmse(predictions, verbose=False)
+    print(f"RMSE: {score:.4f}")
+
+    return model, predictions
+
+def predict_rating(model, user_id, movie_id):
+    pred = model.predict(user_id, movie_id)
+    return pred.est
